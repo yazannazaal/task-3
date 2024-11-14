@@ -13,6 +13,7 @@ export default function BottomHeader() {
   const pages = [
     { id: 1, name: "Home", route: "/" },
     { id: 2, name: "Products", route: "/Products" },
+    { id: 3, name: "Categories", route: "/Categories" },
   ];
 
   return (

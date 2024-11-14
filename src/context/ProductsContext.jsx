@@ -1,33 +1,45 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import {
+  getCategories,
   getProductById,
   getProducts,
+  getProductsByCategory,
   searchForProducts,
 } from "../services/axios";
 
 const ProductContext = createContext({
   products: [],
+  categories: [],
   loading: true,
   fetchSingleProduct: async (id) => {},
 });
 
 export const ProductsProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchProducts = async () => {
+    try {
+      const response = await getProducts();
+      setProducts(response.products);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchAllCategories = async () => {
       try {
-        const response = await getProducts();
-        setProducts(response.products);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
+        const response = await getCategories();
+        setCategories(response);
+      } catch (err) {
+        console.log(err);
       }
     };
-
-    fetchProducts();
+    fetchAllCategories();
   }, []);
 
   const fetchSingleProduct = async (id) => {
@@ -41,14 +53,31 @@ export const ProductsProvider = ({ children }) => {
   const fetchSearchProduct = async (query) => {
     try {
       const response = await searchForProducts(query);
-      setProducts(response.products);
+      setSearchResults(response.products);
     } catch (error) {
       console.log(error);
     }
   };
+  const fetchProductsByCategory = async (category) => {
+    try {
+      const response = await getProductsByCategory(category);
+      setProducts(response.products);
+    } catch (err) {
+      console.log(err);
+    }
+  };
   return (
     <ProductContext.Provider
-      value={{ products, loading, fetchSingleProduct, fetchSearchProduct }}
+      value={{
+        products,
+        searchResults,
+        loading,
+        fetchSingleProduct,
+        fetchSearchProduct,
+        fetchProductsByCategory,
+        categories,
+        fetchProducts,
+      }}
     >
       {children}
     </ProductContext.Provider>

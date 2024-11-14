@@ -4,9 +4,13 @@ import Pagination from "../../components/pagination/Pagination";
 import { Link } from "react-router-dom";
 
 const AllProducts = () => {
-  const { products, loading } = useProducts();
+  const { products, searchResults, fetchProducts, loading } = useProducts();
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 6;
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -16,31 +20,44 @@ const AllProducts = () => {
     return <div>Loading...</div>;
   }
 
-  if (!products) {
+  if (!products && !searchResults) {
     return <div>Error loading products. Please try again later.</div>;
   }
 
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = products.slice(
-    indexOfFirstProduct,
-    indexOfLastProduct
-  );
+
+  const currentProducts =
+    searchResults.length > 0
+      ? searchResults.slice(indexOfFirstProduct, indexOfLastProduct)
+      : products.slice(indexOfFirstProduct, indexOfLastProduct);
+  const totalProducts =
+    searchResults.length > 0 ? searchResults.length : products.length;
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
     <div className="container mx-auto p-4">
-      <h2 className="text-3xl font-bold my-4">All Products</h2>
+      <h2 className="text-3xl font-bold my-4">
+        {searchResults.length > 0 ? "Search Results" : "All Products"}
+      </h2>
 
-      {/* check if there are no products to display */}
-      {products.length === 0 ? (
+      {/* If no products to display */}
+      {currentProducts.length === 0 ? (
         <div className="text-center text-gray-600 py-10">
-          <p className="text-lg font-semibold text-red-500">
-            No products match your search.
-          </p>
+          {searchResults.length > 0 ? (
+            <p className="text-lg font-semibold text-red-500">
+              No products match your search.
+            </p>
+          ) : (
+            <p className="text-lg font-semibold text-red-500">
+              No products available at the moment.
+            </p>
+          )}
           <p className="text-gray-500 mt-2">
-            Please try a different search query.
+            {searchResults.length > 0
+              ? "Please try a different search query."
+              : "Please check back later."}
           </p>
         </div>
       ) : (
@@ -80,7 +97,7 @@ const AllProducts = () => {
 
           <Pagination
             currentPage={currentPage}
-            totalProducts={products.length}
+            totalProducts={totalProducts}
             productsPerPage={productsPerPage}
             paginate={paginate}
           />
